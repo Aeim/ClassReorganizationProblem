@@ -42,6 +42,9 @@ def btn_click(btn_val):
     piano = [list(classes[i]['Piano'].values) for i in range(len(classes))]
     star = [list(classes[i]['Star'].values) for i in range(len(classes))]
     relay = [list(classes[i]['Relay'].values) for i in range(len(classes))]
+    marathon = [list(classes[i]['Marathon'].values) for i in range(len(classes))]
+    pair = [list(classes[i]['Pair'].values) for i in range(len(classes))]
+    unpair = [list(classes[i]['Unpair'].values) for i in range(len(classes))]
 
 
 
@@ -54,6 +57,9 @@ def btn_click(btn_val):
     score_piano = {(students[j][i], old_class[j], new_class[k]) : piano[j][i] for j in range(len(old_class)) for i in range(N[j]) for k in range(len(new_class))}
     score_star = {(students[j][i], old_class[j], new_class[k]) : star[j][i] for j in range(len(old_class)) for i in range(N[j]) for k in range(len(new_class))}
     score_relay = {(students[j][i], old_class[j], new_class[k]) : relay[j][i] for j in range(len(old_class)) for i in range(N[j]) for k in range(len(new_class))}
+    score_marathon = {(students[j][i], old_class[j], new_class[k]) : marathon[j][i] for j in range(len(old_class)) for i in range(N[j]) for k in range(len(new_class))}
+    score_pair = {(students[j][i], old_class[j], new_class[k]) : pair[j][i] for j in range(len(old_class)) for i in range(N[j]) for k in range(len(new_class))}
+    score_unpair = {(students[j][i], old_class[j], new_class[k]) : unpair[j][i] for j in range(len(old_class)) for i in range(N[j]) for k in range(len(new_class))}
 
     # Declare and initialize model
     m = gp.Model('RAP')
@@ -103,6 +109,71 @@ def btn_click(btn_val):
     relay_boy = m.addConstrs((gp.quicksum(x[i,j,k] * score_relay[i,j,k] * score_gender[i,j,k] for j in range(1, len(old_class)+1) for i in range(1, N[j-1]+1)) >= 4 for k in new_class), name='relay_b')
     relay_girl = m.addConstrs((gp.quicksum(x[i,j,k] * score_relay[i,j,k] * (1-score_gender[i,j,k]) for j in range(1, len(old_class)+1) for i in range(1, N[j-1]+1)) >= 4 for k in new_class), name='relay_g')
 
+    all_marathon = 0
+    for j in range(len(old_class)):
+        all_marathon += sum(marathon[j])
+    marathon_max = m.addConstrs((gp.quicksum(x[i,j,k] * score_marathon[i,j,k] for j in range(1, len(old_class)+1) for i in range(1, N[j-1]+1)) <= int(all_marathon/len(new_class)) + 1 for k in new_class), name='mara_max')
+    marathon_min = m.addConstrs((gp.quicksum(x[i,j,k] * score_marathon[i,j,k] for j in range(1, len(old_class)+1) for i in range(1, N[j-1]+1)) >= int(all_marathon/len(new_class)) for k in new_class), name='mara_min')
+
+    a = []
+    for j in old_class:
+        l = [(x+1, y+1) for x in range(N[j-1]) for y in range(N[j-1]) if pair[j-1][x] == pair[j-1][y] and pair[j-1][x] > 0 and pair[j-1][y]>0 and x!=y]
+        print(l)
+        data = {tuple(sorted(item)) for item in l}
+        data = list(data)
+        a.append(data)
+    i_1_j = []
+    i_2_j = []
+    i_1 = []
+    i_2 = []
+    for i in a:
+        #print(i)
+        for s in i:
+            i_1.append(s[0])
+            i_2.append(s[1])
+        i_1_j.append(i_1)
+        i_2_j.append(i_2)
+        i_1=[]
+        i_2=[]
+    pair_con = m.addConstrs(((x[i,j,k]) == (x[l,j,k]) for j in range(1, len(old_class)+1) for i in i_1_j[j-1] for l in i_2_j[j-1] for k in new_class), name='pair')
+
+    b = []
+    for j in old_class:
+        l = [(x+1, y+1) for x in range(N[j-1]) for y in range(N[j-1]) if unpair[j-1][x] == unpair[j-1][y] and unpair[j-1][x] > 0 and unpair[j-1][y]>0 and x!=y]
+        print(l)
+        data = {tuple(sorted(item)) for item in l}
+        data = list(data)
+        b.append(data)
+    print(b)
+    ui_1_j = []
+    ui_2_j = []
+    ui_1 = []
+    ui_2 = []
+    for i in b:
+        #print(i)
+        for s in i:
+            ui_1.append(s[0])
+            ui_2.append(s[1])
+        ui_1_j.append(ui_1)
+        ui_2_j.append(ui_2)
+        ui_1=[]
+        ui_2=[]
+
+    print(type(ui_1_j))
+    for j in range(1, len(old_class)+1):
+        print(j)
+        print("---")
+        for i in ui_1_j[j-1]:
+            print(i)
+
+
+    print(type(i_1_j))
+    for j in range(1, len(old_class)+1):
+        print(j)
+        print("---")
+        for i in i_1_j[j-1]:
+            print(i)
+    unpair_con = m.addConstrs(((x[i,j,k]) * (x[l,j,k]) == 0 for j in range(1, len(old_class)+1) for i in ui_1_j[j-1] for l in ui_2_j[j-1] for k in new_class), name='unpair')
 
 
 
