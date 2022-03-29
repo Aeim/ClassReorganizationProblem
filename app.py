@@ -19,7 +19,6 @@ def btn_click(btn_val):
     for i in range(1, 11):
         set_processbar('bar', i / 10)
         time.sleep(0.1)
-    # put_text("You click %s " % btn_val)
     # prepare date before fed to model
     # Setting global variable
     classes = btn_val[0]
@@ -74,7 +73,6 @@ def btn_click(btn_val):
     mm = m.addVar()
     sm = m.addVar()
 
-    # Debug
     # Add constraints to model
     class_old = m.addConstrs((x.sum(i, j, '*') == 1 for j in range(1, len(old_class)+1) for i in range(1, N[j-1]+1)), name='old_class')
     class_reor_max = m.addConstrs((x.sum('*', j, k) <= int(N[j-1]/len(new_class)) + 1 for j in range(1, len(old_class)+1) for k in new_class), name='reor_class_max')
@@ -118,7 +116,6 @@ def btn_click(btn_val):
     a = []
     for j in old_class:
         l = [(x+1, y+1) for x in range(N[j-1]) for y in range(N[j-1]) if pair[j-1][x] == pair[j-1][y] and pair[j-1][x] > 0 and pair[j-1][y]>0 and x!=y]
-        print(l)
         data = {tuple(sorted(item)) for item in l}
         data = list(data)
         a.append(data)
@@ -127,7 +124,6 @@ def btn_click(btn_val):
     i_1 = []
     i_2 = []
     for i in a:
-        #print(i)
         for s in i:
             i_1.append(s[0])
             i_2.append(s[1])
@@ -140,17 +136,14 @@ def btn_click(btn_val):
     b = []
     for j in old_class:
         l = [(x+1, y+1) for x in range(N[j-1]) for y in range(N[j-1]) if unpair[j-1][x] == unpair[j-1][y] and unpair[j-1][x] > 0 and unpair[j-1][y]>0 and x!=y]
-        print(l)
         data = {tuple(sorted(item)) for item in l}
         data = list(data)
         b.append(data)
-    print(b)
     ui_1_j = []
     ui_2_j = []
     ui_1 = []
     ui_2 = []
     for i in b:
-        #print(i)
         for s in i:
             ui_1.append(s[0])
             ui_2.append(s[1])
@@ -158,21 +151,6 @@ def btn_click(btn_val):
         ui_2_j.append(ui_2)
         ui_1=[]
         ui_2=[]
-
-    print(type(ui_1_j))
-    for j in range(1, len(old_class)+1):
-        print(j)
-        print("---")
-        for i in ui_1_j[j-1]:
-            print(i)
-
-
-    print(type(i_1_j))
-    for j in range(1, len(old_class)+1):
-        print(j)
-        print("---")
-        for i in i_1_j[j-1]:
-            print(i)
     unpair_con = m.addConstrs(((x[i,j,k]) * (x[l,j,k]) == 0 for j in range(1, len(old_class)+1) for i in ui_1_j[j-1] for l in ui_2_j[j-1] for k in new_class), name='unpair')
 
 
@@ -208,20 +186,9 @@ def btn_click(btn_val):
     return table
 
 def cro():
-    #height = input("Input your height(cm)：", type=FLOAT)
-    #weight = input("Input your weight(kg)：", type=FLOAT)
     put_markdown('# **Class Re-organization Problem**')
     classes_file = file_upload(multiple=True)
-    print(type(classes_file))
-
-
-
-
-    #print(classes_file)
-    #print(classes_file[0])
     df = pd.DataFrame(classes_file)
-    print(df)
-    print(df['content'])
 
     # convert file to data frame
     classes = []
@@ -240,10 +207,8 @@ def cro():
         df_data = df_data.astype('int64')
         print(df_data.dtypes)
         classes.append(df_data)
-    print(classes)
 
     k = input("Input number of new classes", type=FLOAT)
-    print(type(k))
     table = btn_click([classes,k])
     put_table(table, header=["Student No.", "Old class", "New class"])
     hold()
